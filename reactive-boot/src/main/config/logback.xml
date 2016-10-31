@@ -1,0 +1,21 @@
+<configuration debug='true'>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.ning" level="ERROR"/>
+    <logger name="org.apache.zookeeper" level="ERROR"/>
+    <logger name="org.apache.kafka" level="OFF"/>
+    <logger name="com.yulplay" level="INFO"/>
+    <logger name="org.atmosphere" level="ERROR"/>
+    <logger name="org.atmosphere.nettosphere" level="OFF"/>
+
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>com.yulplay</groupId>
+        <artifactId>yulplay-reactive</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.yulplay</groupId>
+    <artifactId>yulplay-schema</artifactId>
+    <name>yulplay-schema</name>
+    <description></description>
+    <packaging>jar</packaging>
+
+    <properties>
+        <source.property>1.8</source.property>
+        <target.property>1.8</target.property>
+    </properties>
+
+    <build>
+        <defaultGoal>generate-sources</defaultGoal>
+        <plugins>
+            <plugin>
+                <groupId>org.jsonschema2pojo</groupId>
+                <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+                <version>0.4.7</version>
+                <configuration>
+                    <sourceDirectory>${basedir}/schema</sourceDirectory>
+                    <targetPackage>com.yulplay.schema</targetPackage>
+                    <outputDirectory>src/main/java</outputDirectory>
+                    <sourceType>json</sourceType>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+    </dependencies>
+</project>
