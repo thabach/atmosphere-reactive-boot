@@ -8,16 +8,25 @@ import {
   Text
 } from 'react-native';
 import _ from 'lodash';
+import ModalPicker from 'react-native-modal-picker';
 import {GiftedChat, Bubble} from 'react-native-gifted-chat';
-import Translator from '../Translator';
+import GoogleTranslator from '../Translators/GoogleTranslator';
+import BingTranslator from '../Translators/BingTranslator';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const languages = {
+const TRANSLATORS = {
+  none: 'None',
+  google: 'Google',
+  bing: 'Bing'
+}
+
+const LANGUAGES = {
   en: 'English',
   fr: 'French',
   ru: 'Russian',
-  tlh: 'Klingon',
+  be: 'Belarusian'
+  /*tlh: 'Klingon',
   af: 'Afrikaans',
   ar: 'Arabic',
   'bs-Latn': 'Bosnian: (Latin)',
@@ -64,7 +73,7 @@ const languages = {
   ur: 'Urdu',
   vi: 'Vietnamese',
   cy: 'Welsh',
-  yua: 'Yucatec: Maya'
+  yua: 'Yucatec: Maya'*/
 }
 const {height, width} = Dimensions.get('window');
 var translationIds = 9999;
@@ -75,8 +84,13 @@ export default class Example extends React.Component {
     this._onSendCb = this.onSend.bind(this);
     this._renderBubbleCb = this.renderBubble.bind(this);
 
+    this._googleTranslator = new GoogleTranslator();
+    this._bingTranslator = new BingTranslator();
+
+    this._translator = null;
+
     this.state = {
-      language: 'en',
+      language: 'none',
       showLanguageChooser: false,
       messages: []
     };
@@ -101,6 +115,7 @@ export default class Example extends React.Component {
   }
 
   addNewMessages(messages = []) {
+    console.log(messages);
     this.setState({
       messages: GiftedChat.append(this.state.messages, messages)
     });
@@ -108,22 +123,37 @@ export default class Example extends React.Component {
 
   onReceivedMessage(message) {
     // Save original text before translation
-    var _originalText = message.text;
-    Translator.translate(message.text, 'en', this.state.language).then(
-      translated => {
-        var message = {
+    if (this._translator === null) {
+      setTimeout(() => {
+        var data = {
           _id: translationIds++,
-          text: translated ? translated : _originalText,
+          text: message.text,
           createdAt: new Date(),
           user: {
             _id: 99,
             name: 'Translator'
           }
         }
-        this.addNewMessages([message]);
-      },
-      err => {}
-    ).catch(() => {});
+        this.addNewMessages([data]);
+      }, 1);
+    } else {
+      var _originalText = message.text;
+      this._translator.translate(message.text, 'en', this.state.language).then(
+        translated => {
+          var message = {
+            _id: translationIds++,
+            text: translated ? translated : _originalText,
+            createdAt: new Date(),
+            user: {
+              _id: 99,
+              name: 'Translator'
+            }
+          }
+          this.addNewMessages([message]);
+        },
+        err => {}
+      ).catch(() => {});
+    }
   }
 
   onSend(messages) {
@@ -134,43 +164,77 @@ export default class Example extends React.Component {
 
   render() {
     return (
-      <View style={{flex: 1, flexDirection: 'row'}}>
-        <GiftedChat
-          messages={this.state.messages}
-          onSend={this._onSendCb}
-          renderBubble={this._renderBubbleCb}
-          user={{
-            _id: 1,
-          }}
-        />
-        <View style={{position: 'absolute', right: 10, top: 10}}>
-          <Icon.Button name="cog" backgroundColor="#333" iconStyle={{marginRight: 0}} onPress={() => this.setState({showLanguageChooser: true})} />
-        </View>
-        <Modal
-          animationType={'slide'}
-          visible={this.state.showLanguageChooser}
-          transparent={true}
-          onRequestClose={() => this.setState({showLanguageChooser: false})}
-        >
-          <View key={'overlay'} style={{position: 'absolute', top: 0, left: 0, height: height, width: width, backgroundColor: '#000', opacity: 0.7}} />
-          <View style={{backgroundColor: '#FFF', padding: 15}}>
-            <Text style={{textAlign: 'center', fontSize: 16}}>Choose your language:</Text>
-            <Picker
-              selectedValue={this.state.language}
-              onValueChange={lang => this.setState({language: lang})}>
-              {
-                _.map(languages, (label, code) => <Picker.Item key={code} label={label} value={code} />)
-              }
-            </Picker>
-            <View style={{flex: 0, alignItems: 'center', justifyContent: 'center'}}>
-              <TouchableHighlight onPress={() => this.setState({showLanguageChooser: false})}>
-                <View style={{backgroundColor: '#d9dce0', padding: 10, overflow: 'hidden'}}>
-                  <Text>Close</Text>
-                </View>
-              </TouchableHighlight>
+      <View style={{flex: 1, flexDirection: 'column'}}>
+      <View style={{height: 40, width}}>
+        <View style={{flex: 1, flexDirection: 'row', alignItems: 'center'}}>
+          <View style={{flex: 1}}>
+            <Text
+              style={{}}
+              editable={false}
+            >Translator:</Text>
+            <ModalPicker
+              onChange={translator => {
+                console.log(translator);
+                if (translator.value === 'google') {
+                  this._translator = this._googleTranslator;
+                } else if (translator.value === 'bing') {
+                  this._translator = this._bingTranslator;
+                } else {
+                  this._translator = null;
+                }
+                this.setState({translator: translator.value});
+              }}
+              initValue={TRANSLATORS[this.state.translator]}
+              value={this.state.translator}
+              data={_.map(TRANSLATORS, (translator, key) => {
+                return {
+                  label: translator,
+                  value: key,
+                  key: key
+                };
+              })}>
+                <Text
+                  style={{textAlign: 'center', color: '#333', borderWidth:1, borderColor:'#ccc', padding:5, height:30}}
+                  editable={false}
+                >{TRANSLATORS[this.state.translator]}</Text>
+            </ModalPicker>
+          </View>
+          <View style={{flex: 1}}>
+            <Text
+              style={{}}
+              editable={false}
+            >Language:</Text>
+            <ModalPicker
+              onChange={lang => this.setState({language: lang.value})}
+              initValue={LANGUAGES[this.state.language]}
+              value={this.state.language}
+              data={_.map(LANGUAGES, (lang, key) => {
+                return {
+                  label: lang,
+                  value: key,
+                  key: key
+                };
+              })}>
+                <Text
+                  style={{textAlign: 'center', color: '#333', borderWidth:1, borderColor:'#ccc', padding:5, height:30}}
+                  editable={false}
+                >{LANGUAGES[this.state.language]}</Text>
+              </ModalPicker>
             </View>
           </View>
-        </Modal>
+        </View>
+        <View style={{width, height: height - 40}}>
+          <View style={{flex: 1, flexDirection: 'row'}}>
+            <GiftedChat
+              messages={this.state.messages}
+              onSend={this._onSendCb}
+              renderBubble={this._renderBubbleCb}
+              user={{
+                _id: 1,
+              }}
+            />
+          </View>
+        </View>
       </View>
     );
   }

@@ -5,7 +5,6 @@ import {
   View
 } from 'react-native';
 import ChatRoom from './Components/ChatRoom';
-import Translator from './Translator';
 
 export default class App extends Component {
   componentWillMount() {

@@ -1,7 +1,8 @@
 import Promise from 'bluebird';
+import Translator from '.';
 
-class Translator {
-  constructor() {
+export default class BingTranslator extends Translator {
+  generateApiKey() {
     const options = {
       method: 'POST',
       headers: {
@@ -15,7 +16,9 @@ class Translator {
       err => console.log('Error: ', err)
     ).then(
       token => {
-        this._token = token},
+        console.log('token', token);
+        this._token = token
+      },
       err => console.log('Error2: ', err)
     ).catch(err => console.log('Error caught: ', err));
   }
@@ -44,7 +47,3 @@ class Translator {
     });
   }
 }
-
-var translator = new Translator();
-
-export default translator;
