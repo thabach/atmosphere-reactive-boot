@@ -2,6 +2,12 @@ import Promise from 'bluebird';
 import Translator from '.';
 
 export default class BingTranslator extends Translator {
+  constructor(props) {
+    super(props);
+
+    setInterval(() => this.generateApiKey(), 480000); // Regenerate the API key every 8 minutes
+  }
+
   generateApiKey() {
     const options = {
       method: 'POST',
