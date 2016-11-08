@@ -2,10 +2,12 @@ import React, { Component } from 'react';
 import {
   StyleSheet,
   StatusBar,
-  View
+  View,
+  Dimensions
 } from 'react-native';
 import ChatRoom from './Components/ChatRoom';
 
+const {height, width} = Dimensions.get('window');
 export default class App extends Component {
   componentWillMount() {
     StatusBar.setHidden(true);
@@ -13,9 +15,7 @@ export default class App extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
         <ChatRoom />
-      </View>
     );
   }
 }
@@ -23,8 +23,6 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#F6F6F7',
   }
 });

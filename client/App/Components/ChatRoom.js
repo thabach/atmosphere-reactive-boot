@@ -9,10 +9,14 @@ import {
   TextInput
 } from 'react-native';
 import _ from 'lodash';
+import uuid from 'uuid';
+
 import ModalPicker from 'react-native-modal-picker';
 import {GiftedChat, Bubble} from 'react-native-gifted-chat';
 import GoogleTranslator from '../Translators/GoogleTranslator';
 import BingTranslator from '../Translators/BingTranslator';
+
+import WS from '../ws';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -78,7 +82,7 @@ class LanguageChooser extends React.Component {
   }
 }
 
-export default class Example extends React.Component {
+export default class ChatRoom extends React.Component {
   constructor(props) {
     super(props);
 
@@ -89,8 +93,14 @@ export default class Example extends React.Component {
     this._bingTranslator = new BingTranslator();
 
     this._translator = null;
-    this._serverLocation = null;
+    this._serverLocation = 'ws://10.0.1.2:8080';
     this._language = 'none';
+
+    this._onMessageCb = this.onReceivedMessage.bind(this);
+    this._ws = new WS();
+    this._ws.addListener('message', this._onMessageCb);
+
+    this._userId = uuid.v4();
 
     this.state = {
       showLanguageChooser: false,
@@ -123,46 +133,60 @@ export default class Example extends React.Component {
   }
 
   onReceivedMessage(message) {
-    // Save original text before translation
-    if (this._translator === null) {
-      setTimeout(() => {
-        var data = {
-          _id: translationIds++,
-          text: message.text,
-          createdAt: new Date(),
-          language: this._language,
-          user: {
-            _id: 99,
-            name: 'Translator'
-          }
-        }
-        this.addNewMessages([data]);
-      }, 1);
-    } else {
-      var _originalText = message.text;
-      this._translator.translate(message.text, 'en', this._language).then(
-        translated => {
-          var message = {
+    console.log('reeived message', message);
+    if (message.userId !== this._userId) {
+      // Save original text before translation
+      if (this._translator === null) {
+        setTimeout(() => {
+          var data = {
             _id: translationIds++,
-            text: translated ? translated : _originalText,
-            createdAt: new Date(),
-            language: this._language,
+            text: message.text,
+            createdAt: new Date(message.clock),
             user: {
-              _id: 99,
+              _id: message.userId,
+              language: message.language,
               name: 'Translator'
             }
           }
-          this.addNewMessages([message]);
-        },
-        err => {}
-      ).catch(() => {});
+          this.addNewMessages([data]);
+        }, 1);
+      } else {
+        var _originalText = message.text;
+        this._translator.translate(message.text, 'en', this._language).then(
+          translated => {
+            var message = {
+              _id: translationIds++,
+              text: translated ? translated : _originalText,
+              createdAt: new Date(message.clock),
+              user: {
+                _id: message.userId,
+                language: message.language,
+                name: 'Translator'
+              }
+            }
+            this.addNewMessages([message]);
+          },
+          err => {}
+        ).catch(() => {});
+      }
     }
   }
 
   onSend(messages) {
     this.addNewMessages(messages);
 
-    this.onReceivedMessage(messages[0]);
+    if (this._ws && messages[0]) {
+      var message = {
+        userId: messages[0].user._id,
+        avatarUrl: '',
+        firstName: '',
+        lastName: '',
+        language: this._language,
+        text: messages[0].text,
+        clock: messages[0].createdAt
+      }
+      this._ws.send(message);
+    }
   }
 
   _setLanguage(language) {
@@ -179,14 +203,15 @@ export default class Example extends React.Component {
 
   render() {
     return (
-      <View style={{flex: 1, flexDirection: 'row'}}>
+      <View style={{flex: 1}}>
         <GiftedChat
           messages={this.state.messages}
+          isAnimated={false}
           onSend={this._onSendCb}
           renderBubble={this._renderBubbleCb}
           renderActions={() => <LanguageChooser onChange={this._setLanguage.bind(this)} />}
           user={{
-            _id: 1
+            _id: this._userId
           }}
         />
 
@@ -213,7 +238,8 @@ export default class Example extends React.Component {
               />
               <View style={{flexDirection: 'row', justifyContent: 'center', marginTop: 10}}>
                 <TouchableOpacity onPress={() => {
-                  this._serverLocation = this.state.serverLocation;
+                  //this._serverLocation = this.state.serverLocation;
+                  this._ws.connect(this._serverLocation);
                   this.setState({showSettings: false});
                 }}>
                   <View style={{flex: 0, backgroundColor: '#99CCFF', borderRadius: 3, paddingTop: 10, paddingBottom: 10, paddingLeft: 20, paddingRight: 20}}>
