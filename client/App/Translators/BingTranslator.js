@@ -19,14 +19,14 @@ export default class BingTranslator extends Translator {
     };
     fetch('https://api.cognitive.microsoft.com/sts/v1.0/issueToken', options).then(
       res => res.text(),
-      err => console.log('Error: ', err)
+      err => console.log('bing translate :: fetch error', err)
     ).then(
       token => {
-        console.log('token', token);
+        console.log('bing translate :: token', token);
         this._token = token
       },
-      err => console.log('Error2: ', err)
-    ).catch(err => console.log('Error caught: ', err));
+      err => console.log('bing translate :: token error', err)
+    ).catch(err => console.log('bing translate :: token caught error', err));
   }
 
   translate(text, fromLanguage, toLanguage) {

@@ -133,7 +133,6 @@ export default class ChatRoom extends React.Component {
   }
 
   onReceivedMessage(message) {
-    console.log('received message', message);
     if (message.userId !== this._userId) {
       // Save original text before translation
       if (this._translator === null || (this._language === 'none' || message.language === this._language)) {
@@ -145,7 +144,7 @@ export default class ChatRoom extends React.Component {
             user: {
               _id: message.userId,
               language: message.language,
-              name: 'Translator'
+              name: message.firstName + ' ' + message.lastName
             }
           }
           this.addNewMessages([data]);
@@ -161,19 +160,17 @@ export default class ChatRoom extends React.Component {
               user: {
                 _id: message.userId,
                 language: message.language,
-                name: 'Translator'
+                name: message.firstName + ' ' + message.lastName
               }
             }
 
-            console.log(data);
             this.addNewMessages([data]);
           },
           err => {
-            console.log('error', err);
+            console.log('chatroom :: error', err);
           }
         ).catch((err) => {
-
-            console.log('caught error', err);
+            console.log('chatroom :: caught error', err);
         });
       }
     }
@@ -186,8 +183,8 @@ export default class ChatRoom extends React.Component {
       var message = {
         userId: messages[0].user._id,
         avatarUrl: '',
-        firstName: '',
-        lastName: '',
+        firstName: this.state.firstName,
+        lastName: this.state.lastName,
         language: this._language,
         text: messages[0].text,
         clock: messages[0].createdAt
@@ -235,21 +232,40 @@ export default class ChatRoom extends React.Component {
           <View style={{position: 'absolute', top: 0, left: 0, width, height, backgroundColor: '#000', opacity: 0.7}} />
           <View style={{margin: 20, flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
             <View style={{padding: 20, flex: 1, backgroundColor: '#FFF'}}>
-              <Text style={{fontWeight: 'bold', textAlign: 'center'}}>Server Location:</Text>
+              <Text style={{fontWeight: 'bold', textAlign: 'center'}}>First Name:</Text>
               <TextInput
                 autoFocus={true}
-                style={{height: 40, marginTop: 10, fontSize: 14, borderColor: '#ccc', borderWidth: 1, padding: 10, textAlign: 'center'}}
+                style={{height: 40, marginTop: 5, marginBottom: 10, fontSize: 14, borderColor: '#ccc', borderWidth: 1, padding: 10, textAlign: 'center'}}
+                onChangeText={(firstName) => this.setState({firstName})}
+                value={this.state.firstName}
+              />
+              <Text style={{fontWeight: 'bold', textAlign: 'center'}}>Last Name:</Text>
+              <TextInput
+                style={{height: 40, marginTop: 5, marginBottom: 10, fontSize: 14, borderColor: '#ccc', borderWidth: 1, padding: 10, textAlign: 'center'}}
+                onChangeText={(lastName) => this.setState({lastName})}
+                value={this.state.lastName}
+              />
+              <Text style={{fontWeight: 'bold', textAlign: 'center'}}>Server Location:</Text>
+              <TextInput
+                style={{height: 40, marginTop: 5, marginBottom: 10, fontSize: 14, borderColor: '#ccc', borderWidth: 1, padding: 10, textAlign: 'center'}}
                 onChangeText={(serverLocation) => this.setState({serverLocation})}
                 defaultValue={this._serverLocation ? this._serverLocation : 'ws://'}
                 value={this.state.serverLocation}
               />
               <View style={{flexDirection: 'row', justifyContent: 'center', marginTop: 10}}>
                 <TouchableOpacity onPress={() => {
+                  this.setState({showSettings: false});
+                }}>
+                  <View style={{flex: 0, backgroundColor: '#CCCCCC', borderRadius: 3, paddingTop: 10, paddingBottom: 10, paddingLeft: 20, paddingRight: 20}}>
+                    <Text style={{fontSize: 15, textAlign: 'center'}}>Close</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => {
                   //this._serverLocation = this.state.serverLocation;
                   this._ws.connect(this._serverLocation);
                   this.setState({showSettings: false});
                 }}>
-                  <View style={{flex: 0, backgroundColor: '#99CCFF', borderRadius: 3, paddingTop: 10, paddingBottom: 10, paddingLeft: 20, paddingRight: 20}}>
+                  <View style={{flex: 0, marginLeft: 10, backgroundColor: '#99CCFF', borderRadius: 3, paddingTop: 10, paddingBottom: 10, paddingLeft: 20, paddingRight: 20}}>
                     <Text style={{fontSize: 15, textAlign: 'center'}}>Save</Text>
                   </View>
                 </TouchableOpacity>

@@ -26,20 +26,18 @@ export default class GoogleTranslator extends Translator {
         return res.json()
       }).then(
         response => {
-          console.log(response.data);
           if (response && response.data && response.data.translations && response.data.translations.length > 0) {
-            console.log(response.data.translations[0].translatedText);
             resolve(decodeHtmlEntity(response.data.translations[0].translatedText));
           } else {
             reject();
           }
         },
         err => {
-          console.log(err);
+          console.log('google translate :: error', err);
           reject(err);
         }
       ).catch(err => {
-        console.log(err);
+        console.log('google translate :: caught error', err);
         reject(err)
       });
     });

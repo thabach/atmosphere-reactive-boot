@@ -1,6 +1,5 @@
 import {EventEmitter} from 'events';
 import Base64 from 'base-64';
-import Utf8 from 'utf8';
 
 export default class WS extends EventEmitter {
   constructor() {
@@ -11,23 +10,17 @@ export default class WS extends EventEmitter {
 
   send(message) {
     if (this._ws) {
-      console.log('ws :: send', message);
-
       var wsMessage = JSON.stringify({
         path: '/dispatch',
         destination: 'all',
-        body: Base64.encode(JSON.stringify(message))
+        body: Base64.encode(unescape(encodeURIComponent(JSON.stringify(message))))
       })
-
-      console.log(wsMessage);
       this._ws.send(wsMessage);
     }
   }
 
   onReceive(wsMessage) {
-    console.log('ws :: onReceive', wsMessage);
-
-    var message = JSON.parse(Base64.decode(JSON.parse(wsMessage).body)) ;
+    var message = JSON.parse(decodeURIComponent(escape(Base64.decode(JSON.parse(wsMessage).body))));
     this.emit('message', message);
   }
 
