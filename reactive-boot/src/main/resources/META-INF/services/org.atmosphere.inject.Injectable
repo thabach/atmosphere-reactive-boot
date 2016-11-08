@@ -1,6 +1,5 @@
 ## If you Injectable needs injection, make sure it is listed first.
 
-com.yulplay.reactive.boot.inject.NewShinyProducerInjectable
 com.yulplay.reactive.boot.inject.PropertyInjectable
 com.yulplay.reactive.boot.inject.PropertyBooleanInjectable
 com.yulplay.reactive.boot.inject.KafkaCustomerInjectable

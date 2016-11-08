@@ -1,12 +1,12 @@
 package com.yulplay.reactive.boot;
 
-import com.yulplay.protocol.Message;
+import com.yulplay.protocol.Enveloppe;
 
 public interface EventBus {
 
     EventBus async(boolean b);
 
-    EventBus dispatch(Message payload);
+    EventBus dispatch(Enveloppe payload);
 
     EventBus replyTo(Reply<?> reply);
 

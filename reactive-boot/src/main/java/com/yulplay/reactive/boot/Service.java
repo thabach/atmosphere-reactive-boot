@@ -1,13 +1,11 @@
 package com.yulplay.reactive.boot;
 
 
-import com.yulplay.protocol.Message;
+import com.yulplay.protocol.Enveloppe;
+
+import java.io.IOException;
 
 public interface Service<U> {
 
-    default void on(Message message) {
-        on(message, (Reply<U>) Reply.VOID_REPLY);
-    }
-
-    void on(Message message, Reply<U> reply);
+    void on(Enveloppe enveloppe, Reply<U> reply) throws IOException;
 }

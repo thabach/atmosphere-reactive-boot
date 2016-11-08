@@ -75,23 +75,4 @@ public class WebSocketProtocolTest {
         }
     }
 
-    @Test
-    public void testSubProtocol() throws Exception {
-        final CountDownLatch l = new CountDownLatch(1);
-
-        final AtomicBoolean OK = new AtomicBoolean();
-        AsyncHttpClient c = new AsyncHttpClient(new AsyncHttpClientConfig.Builder().setMaxRequestRetry(-1).build());
-        try {
-            WebSocket webSocket = c.prepareGet(target + port + "/")
-                    .addHeader(ReactivesWebSocketProcessor.WEBSOCKET_SUB_PROTOCOL, ReactivesWebSocketProcessor.PROTOCOL).execute(new WebSocketUpgradeHandler.Builder().build()).get();
-            assertNotNull(webSocket);
-            OK.set(true);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            OK.set(false);
-        } finally {
-            c.close();
-        }
-        assertTrue(OK.get());
-    }
 }

@@ -18,30 +18,6 @@
         <source.property>1.8</source.property>
         <target.property>1.8</target.property>
     </properties>
-
-    <build>
-        <defaultGoal>generate-sources</defaultGoal>
-        <plugins>
-            <plugin>
-                <groupId>org.jsonschema2pojo</groupId>
-                <artifactId>jsonschema2pojo-maven-plugin</artifactId>
-                <version>0.4.7</version>
-                <configuration>
-                    <sourceDirectory>${basedir}/schema</sourceDirectory>
-                    <targetPackage>com.yulplay.schema</targetPackage>
-                    <outputDirectory>src/main/java</outputDirectory>
-                    <sourceType>json</sourceType>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
     <dependencies>
         <dependency>
             <groupId>commons-lang</groupId>

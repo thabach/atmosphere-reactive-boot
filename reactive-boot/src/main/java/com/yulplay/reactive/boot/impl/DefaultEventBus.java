@@ -1,6 +1,6 @@
 package com.yulplay.reactive.boot.impl;
 
-import com.yulplay.protocol.Message;
+import com.yulplay.protocol.Enveloppe;
 import com.yulplay.reactive.boot.EventBus;
 import com.yulplay.reactive.boot.Reply;
 import com.yulplay.reactive.boot.Service;
@@ -32,7 +32,7 @@ public class DefaultEventBus implements EventBus {
     @Override
     public EventBus async(final boolean async) {
         return new EventBus() {
-            private Message yulplayMessage;
+            private Enveloppe yulplayEnveloppe;
             private Reply reply;
 
             @Override
@@ -41,8 +41,8 @@ public class DefaultEventBus implements EventBus {
             }
 
             @Override
-            public EventBus dispatch(Message yulplayMessage) {
-                this.yulplayMessage = yulplayMessage;
+            public EventBus dispatch(Enveloppe yulplayEnveloppe) {
+                this.yulplayEnveloppe = yulplayEnveloppe;
                 return this;
             }
 
@@ -56,15 +56,15 @@ public class DefaultEventBus implements EventBus {
             public EventBus to(String... path) {
 
                 if (reply == null) {
-                    synchronized(yulplayMessage) {
+                    synchronized(yulplayEnveloppe) {
                         reply = Reply.VOID_REPLY;
                     }
                 }
                 for (final String p : path) {
                     if (async) {
-                        service.submit(() -> executeDispatch(p, yulplayMessage, reply));
+                        service.submit(() -> executeDispatch(p, yulplayEnveloppe, reply));
                     } else {
-                        executeDispatch(p, yulplayMessage, reply);
+                        executeDispatch(p, yulplayEnveloppe, reply);
                     }
                 }
                 return this;
@@ -87,15 +87,14 @@ public class DefaultEventBus implements EventBus {
         };
     }
 
-    private final void executeDispatch(String path, Message yulplayMessage, Reply<?> reply) {
+    private final void executeDispatch(String path, Enveloppe yulplayEnveloppe, Reply<?> reply) {
         Service s = servicesMapper.map(path, services);
         if (s != null) {
             try {
                 logger.trace("Service found {}", s);
-                s.on(yulplayMessage, reply);
+                s.on(yulplayEnveloppe, reply);
             } catch (Exception ex) {
                 logger.error("", ex);
-                throw ex;
             }
         } else {
             throw new IllegalStateException(String.format("No mapping for %s", path));
@@ -103,7 +102,7 @@ public class DefaultEventBus implements EventBus {
     }
 
     @Override
-    public EventBus dispatch(Message yulplayMessage) {
+    public EventBus dispatch(Enveloppe yulplayEnveloppe) {
         throw new IllegalStateException("Must call async first");
     }
 
