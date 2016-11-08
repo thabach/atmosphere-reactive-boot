@@ -133,10 +133,10 @@ export default class ChatRoom extends React.Component {
   }
 
   onReceivedMessage(message) {
-    console.log('reeived message', message);
+    console.log('received message', message);
     if (message.userId !== this._userId) {
       // Save original text before translation
-      if (this._translator === null) {
+      if (this._translator === null || (this._language === 'none' || message.language === this._language)) {
         setTimeout(() => {
           var data = {
             _id: translationIds++,
@@ -152,9 +152,9 @@ export default class ChatRoom extends React.Component {
         }, 1);
       } else {
         var _originalText = message.text;
-        this._translator.translate(message.text, 'en', this._language).then(
+        this._translator.translate(message.text, message.language, this._language).then(
           translated => {
-            var message = {
+            var data = {
               _id: translationIds++,
               text: translated ? translated : _originalText,
               createdAt: new Date(message.clock),
@@ -164,10 +164,17 @@ export default class ChatRoom extends React.Component {
                 name: 'Translator'
               }
             }
-            this.addNewMessages([message]);
+
+            console.log(data);
+            this.addNewMessages([data]);
           },
-          err => {}
-        ).catch(() => {});
+          err => {
+            console.log('error', err);
+          }
+        ).catch((err) => {
+
+            console.log('caught error', err);
+        });
       }
     }
   }

@@ -25,7 +25,7 @@ export default class WS extends EventEmitter {
   }
 
   onReceive(wsMessage) {
-    console.log('ws :: onReceive', message);
+    console.log('ws :: onReceive', wsMessage);
 
     var message = JSON.parse(Base64.decode(JSON.parse(wsMessage).body)) ;
     this.emit('message', message);
