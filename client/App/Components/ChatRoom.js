@@ -104,6 +104,9 @@ export default class ChatRoom extends React.Component {
 
     this._userId = uuid.v4();
 
+    this._isTyping = false;
+    this._typingUsers = {};
+
     this.state = {
       showLanguageChooser: false,
       firstName: 'Jeremie',
@@ -185,29 +188,50 @@ export default class ChatRoom extends React.Component {
       return;
     }
 
-    var msg = '';
-    if (user && user.isTyping) {
-      msg = user.firstName + ' ' + user.lastName + ' is typing...'
+    var msg = ' ';
+    if (user.isTyping) {
+      this._typingUsers[user.userId] = user;
+    } else {
+      this._typingUsers[user.userId] = null;
+      delete this._typingUsers[user.userId];
     }
+
+    var users = _.values(this._typingUsers);
+    if (users.length > 0) {
+      msg = users[0].firstName + ' ' + users[0].lastName;
+      if (users.length > 1) {
+        msg += ' and ' + (users.length - 1) + ' other' + (users.length === 2 ? ' is' : 's are') + ' typing...';
+      } else {
+        msg += ' is writing...';
+      }
+    }
+
+    console.log(msg);
     this.setState({
       isTypingText: msg
     });
   }
 
+  _onTypingStop() {
+    this.sendUserIsTyping(false);
+    this._isTyping = false;
+  }
+
   resetTypingTimer() {
     clearTimeout(this._typingTimer);
-    this._typingTimer = setTimeout(() => {
-      this.sendUserIsTyping(false);
-    }, 2000);
+    this._typingTimer = setTimeout(this._onTypingStop.bind(this), 2000);
   }
 
   sendUserIsTyping(isTyping) {
-    this._ws.send('/typing', {
-      userId: this._userId,
-      firstName: this.state.firstName,
-      lastName: this.state.lastName,
-      isTyping
-    });
+    if (!this._isTyping) {
+      this._isTyping = isTyping;
+      this._ws.send('/typing', {
+        userId: this._userId,
+        firstName: this.state.firstName,
+        lastName: this.state.lastName,
+        isTyping
+      });
+    }
     this.resetTypingTimer();
   }
 
@@ -256,7 +280,7 @@ export default class ChatRoom extends React.Component {
           onSend={this._onSendCb}
           renderBubble={this._renderBubbleCb}
           renderActions={() => <LanguageChooser onChange={this._setLanguage.bind(this)} />}
-          renderChatFooter={() => <Text style={{fontSize: 14, color: '#222', padding: 5}}>{this.state.isTypingText}</Text>}
+          renderChatFooter={() => <Text style={{fontSize: 13, color: '#222', padding: 5}}>{this.state.isTypingText}</Text>}
           renderInputToolbar={(inputToolbarProps) => (
             <InputToolbar {...inputToolbarProps} onChange={(e) => {
               inputToolbarProps.onChange(e);
@@ -268,7 +292,7 @@ export default class ChatRoom extends React.Component {
           }}
         />
 
-        <TouchableOpacity style={{position: 'absolute', top: 0, right: 0, padding: 10}} onPress={() => this.setState({showSettings: true})}>
+        <TouchableOpacity style={{position: 'absolute', top: 0, right: 0, padding: 10, backgroundColor: 'transparent'}} onPress={() => this.setState({showSettings: true})}>
           <Icon name="cog" size={25} />
         </TouchableOpacity>
 
