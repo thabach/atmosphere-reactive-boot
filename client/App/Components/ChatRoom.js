@@ -239,6 +239,7 @@ export default class ChatRoom extends React.Component {
     this.addNewMessages(messages);
 
     if (this._ws && messages[0]) {
+      this._isTyping = false;
       this.sendUserIsTyping(false);
       var message = {
         userId: messages[0].user._id,
