@@ -58,15 +58,15 @@ public class ReactiveBootstrap {
         builder.broadcaster(SimpleBroadcaster.class)
                 .broadcasterCache(UUIDBroadcasterCache.class)
                 .noInternalAlloc(true)
-                .binaryWrite(true)
+//                .binaryWrite(true)
                 .initParam("noInternalAlloc", "true")
                 .textFrameAsBinary(true)
-                .subProtocols(ReactivesWebSocketProcessor.PROTOCOL)
+//                .subProtocols(ReactivesWebSocketProcessor.PROTOCOL)
                 .initParam(ApplicationConfig.DISABLE_ATMOSPHEREINTERCEPTOR, "true")
                         //               .initParam(ApplicationConfig.WEBSOCKET_IDLETIME, "600000")
                 .initParam(ApplicationConfig.PROPERTY_COMET_SUPPORT, NettyCometSupport.class.getName())
                 .initParam(ApplicationConfig.CUSTOM_ANNOTATION_PACKAGE, OnAnnotationProcessor.class.getPackage().getName())
-                .initParam(ApplicationConfig.SCAN_CLASSPATH, "false")
+                .initParam(ApplicationConfig.SCAN_CLASSPATH, "true")
                 .initParam(ApplicationConfig.ANNOTATION_PACKAGE, getClass().getPackage().getName());
 
 
@@ -179,13 +179,10 @@ public class ReactiveBootstrap {
         }
 
         private final static String YULY =
-                "\t██╗   ██╗██╗   ██╗██╗  ██╗   ██╗    \n\t" +
-                        "╚██╗ ██╔╝██║   ██║██║  ╚██╗ ██╔╝    \n\t" +
-                        " ╚████╔╝ ██║   ██║██║   ╚████╔╝     \n\t" +
-                        "  ╚██╔╝  ██║   ██║██║    ╚██╔╝      \n\t" +
-                        "   ██║   ╚██████╔╝███████╗██║       \n\t" +
-                        "   ╚═╝    ╚═════╝ ╚══════╝╚═╝    \n\t" +
-                        "             Framework";
+                "\n" +
+                        "  /\\  |                   |                |~~\\           | '       \n" +
+                        " /__\\~|~|/~\\ /~\\ /~\\(~|~~\\|/~\\ /~/|/~\\/~/  |__//~//~~|/~~~|~|\\  //~/\n" +
+                        "/    \\| |   |   |\\_/_)|__/|   |\\/_|   \\/_  |  \\\\/_\\__|\\__ | | \\/ \\/_";
 }
  
 

@@ -44,7 +44,7 @@
     <modules>
         <module>protocol</module>
         <module>reactive-boot</module>
-        <module>loaddriver</module>
+        <module>minsk</module>
     </modules>
 
     <dependencyManagement>

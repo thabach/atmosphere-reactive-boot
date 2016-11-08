@@ -1,9 +1,6 @@
 
-package com.yulplay.schema;
+package com.yulplay.reactive.boot.schema;
 
-import java.util.HashMap;
-import java.util.Map;
-import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -14,6 +11,10 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
+import javax.annotation.Generated;
+import java.util.HashMap;
+import java.util.Map;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
 @JsonPropertyOrder({
@@ -22,9 +23,10 @@ import org.apache.commons.lang.builder.ToStringBuilder;
     "firstName",
     "lastName",
     "language",
+    "clock",
     "text"
 })
-public class ChatMessage {
+public class Message {
 
     @JsonProperty("userId")
     private String userId;
@@ -38,8 +40,30 @@ public class ChatMessage {
     private String language;
     @JsonProperty("text")
     private String text;
+    @JsonProperty("clock")
+    private String clock;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+
+    /**
+     *
+     * @return
+     *     The clock
+     */
+    @JsonProperty("clock")
+    public String getClock() {
+        return clock;
+    }
+
+    /**
+     *
+     * @param userId
+     *     The userId
+     */
+    @JsonProperty("clock")
+    public void setClock(String clock) {
+        this.clock = clock;
+    }
 
     /**
      * 
@@ -186,10 +210,10 @@ public class ChatMessage {
         if (other == this) {
             return true;
         }
-        if ((other instanceof ChatMessage) == false) {
+        if ((other instanceof Message) == false) {
             return false;
         }
-        ChatMessage rhs = ((ChatMessage) other);
+        Message rhs = ((Message) other);
         return new EqualsBuilder().append(userId, rhs.userId).append(avatarUrl, rhs.avatarUrl).append(firstName, rhs.firstName).append(lastName, rhs.lastName).append(language, rhs.language).append(text, rhs.text).append(additionalProperties, rhs.additionalProperties).isEquals();
     }
 

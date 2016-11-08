@@ -1,8 +1,7 @@
 package com.yulplay.reactive.boot;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yulplay.protocol.Message;
-import com.yulplay.reactive.boot.service.KafkaCustomerService;
+import com.yulplay.protocol.Enveloppe;
 import org.atmosphere.cpr.AtmosphereFramework;
 import org.atmosphere.cpr.AtmosphereRequest;
 import org.atmosphere.cpr.AtmosphereResource;
@@ -19,8 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.yulplay.reactive.boot.ServiceRegistration.KAFKA_PRODUCER;
-
 /**
  * This is the lowest entry point in Atmosphere to write WebSocket application.
  */
@@ -29,7 +26,6 @@ public class ReactivesWebSocketProcessor extends WebSocketProcessorAdapter {
 
     private enum ReplyTo {ALL_WEBSOCKETS, WEBSOCKET}
 
-    public final static String PROTOCOL = "rpm-protocol";
     public final static String WEBSOCKET_SUB_PROTOCOL = "Sec-WebSocket-Protocol";
 
     @Inject
@@ -49,16 +45,8 @@ public class ReactivesWebSocketProcessor extends WebSocketProcessorAdapter {
     private boolean noInternalAlloc = true;
 
     @Inject
-    @Named("yulplay.service.default")
-    private String defaultService = KAFKA_PRODUCER;
-
-    @Inject
     @Named("yulplay.service.async")
     private boolean executeAsync = false;
-
-    @Inject
-    @Named("yulplay.kafka.websocket.lookup")
-    private String lookupWebSocket = KafkaCustomerService.FIND_BY_ORIGIN; // ""realIp";
 
     @Inject
     @Named("yulplay.kafka.websocket.uniqueReply")
@@ -78,9 +66,6 @@ public class ReactivesWebSocketProcessor extends WebSocketProcessorAdapter {
         // With Netty this will always pass as the check is done in the library itself. Not all server
         // supports it, so just do a quick check here.
         String protocol = request.getHeader(WEBSOCKET_SUB_PROTOCOL);
-        if (protocol == null || !protocol.equalsIgnoreCase(PROTOCOL)) {
-            return false;
-        }
         return true;
     }
 
@@ -115,22 +100,18 @@ public class ReactivesWebSocketProcessor extends WebSocketProcessorAdapter {
         logger.debug("Dispatching webSocket payload");
 
         // (1) Read Message
-        Message message = null;
+        Enveloppe enveloppe = null;
         try {
-            message = objectMapper.readValue(data, 0, data.length, Message.class);
+            enveloppe = objectMapper.readValue(data, 0, data.length, Enveloppe.class);
         } catch (IOException e) {
             logger.error("", e);
             webSocket.close();
         }
 
-        // (3) Bind the message to the websocket and to this node.
-        message.webSocketUUID(webSocket.uuid());
+        // (32) Bind the message to the websocket and to this node.
+        enveloppe.webSocketUUID(webSocket.uuid());
 
-        // Will increase memory usage (see the TubesWebSocketFactory)
-        if (lookupWebSocket.equals(KafkaCustomerService.FIND_BY_IP)) {
-            webSocketFactory.bind(message.origin(), webSocket.uuid());
-        }
-
+        // (3) Reply
         Reply<byte[]> reply;
         if (!uniqueReply) {
             // (4) Prepare Reply
@@ -151,13 +132,13 @@ public class ReactivesWebSocketProcessor extends WebSocketProcessorAdapter {
             };
 
             // (5) Attach message to the Reply for async
-            MessageReceiver.class.cast(webSocket.attachment()).receiveWith(message, reply);
+            MessageReceiver.class.cast(webSocket.attachment()).receiveWith(enveloppe, reply);
         } else {
             reply = MessageReceiver.class.cast(webSocket.attachment()).receiveWith();
         }
 
-        // (6) Dispatch the message to the proper service. If Kafka is the only Service defined, event bus is not needed.
-        eventBus.async(executeAsync).dispatch(message).replyTo(reply).to(message.transport());
+        // (4) Dispatch the message to the proper service. If Kafka is the only Service defined, event bus is not needed.
+        eventBus.async(executeAsync).dispatch(enveloppe).replyTo(reply).to(enveloppe.path());
     }
 
     @Override
@@ -166,10 +147,6 @@ public class ReactivesWebSocketProcessor extends WebSocketProcessorAdapter {
 
         if (logger.isTraceEnabled()) {
             connected.decrementAndGet();
-        }
-
-        if (lookupWebSocket.equals(KafkaCustomerService.FIND_BY_IP)) {
-            webSocketFactory.unbind(webSocket.uuid());
         }
 
         MessageReceiver r = (MessageReceiver) webSocket.attachment();
