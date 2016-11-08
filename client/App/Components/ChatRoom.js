@@ -12,7 +12,7 @@ import _ from 'lodash';
 import uuid from 'uuid';
 
 import ModalPicker from 'react-native-modal-picker';
-import {GiftedChat, Bubble} from 'react-native-gifted-chat';
+import {GiftedChat, Bubble, InputToolbar} from 'react-native-gifted-chat';
 import GoogleTranslator from '../Translators/GoogleTranslator';
 import BingTranslator from '../Translators/BingTranslator';
 
@@ -97,13 +97,17 @@ export default class ChatRoom extends React.Component {
     this._language = 'none';
 
     this._onMessageCb = this.onReceivedMessage.bind(this);
+    this._onTypingCb = this.onReceivedTyping.bind(this);
     this._ws = new WS();
     this._ws.addListener('message', this._onMessageCb);
+    this._ws.addListener('typing', this._onTypingCb);
 
     this._userId = uuid.v4();
 
     this.state = {
       showLanguageChooser: false,
+      firstName: 'Jeremie',
+      lastName: 'Papillon',
       messages: []
     };
   }
@@ -176,10 +180,42 @@ export default class ChatRoom extends React.Component {
     }
   }
 
+  onReceivedTyping(user) {
+    if (user.userId === this._userId) {
+      return;
+    }
+
+    var msg = '';
+    if (user && user.isTyping) {
+      msg = user.firstName + ' ' + user.lastName + ' is typing...'
+    }
+    this.setState({
+      isTypingText: msg
+    });
+  }
+
+  resetTypingTimer() {
+    clearTimeout(this._typingTimer);
+    this._typingTimer = setTimeout(() => {
+      this.sendUserIsTyping(false);
+    }, 2000);
+  }
+
+  sendUserIsTyping(isTyping) {
+    this._ws.send('/typing', {
+      userId: this._userId,
+      firstName: this.state.firstName,
+      lastName: this.state.lastName,
+      isTyping
+    });
+    this.resetTypingTimer();
+  }
+
   onSend(messages) {
     this.addNewMessages(messages);
 
     if (this._ws && messages[0]) {
+      this.sendUserIsTyping(false);
       var message = {
         userId: messages[0].user._id,
         avatarUrl: '',
@@ -189,7 +225,7 @@ export default class ChatRoom extends React.Component {
         text: messages[0].text,
         clock: messages[0].createdAt
       }
-      this._ws.send(message);
+      this._ws.send('/dispatch', message);
     }
   }
 
@@ -205,6 +241,12 @@ export default class ChatRoom extends React.Component {
     this._language = language;
   }
 
+  componentWillMount() {
+    if (this._serverLocation) {
+      this._ws.connect(this._serverLocation);
+    }
+  }
+
   render() {
     return (
       <View style={{flex: 1}}>
@@ -214,6 +256,13 @@ export default class ChatRoom extends React.Component {
           onSend={this._onSendCb}
           renderBubble={this._renderBubbleCb}
           renderActions={() => <LanguageChooser onChange={this._setLanguage.bind(this)} />}
+          renderChatFooter={() => <Text style={{fontSize: 14, color: '#222', padding: 5}}>{this.state.isTypingText}</Text>}
+          renderInputToolbar={(inputToolbarProps) => (
+            <InputToolbar {...inputToolbarProps} onChange={(e) => {
+              inputToolbarProps.onChange(e);
+              this.sendUserIsTyping(true);
+            }} style={{marginTop: 20}} />
+          )}
           user={{
             _id: this._userId
           }}
@@ -261,7 +310,6 @@ export default class ChatRoom extends React.Component {
                   </View>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => {
-                  //this._serverLocation = this.state.serverLocation;
                   this._ws.connect(this._serverLocation);
                   this.setState({showSettings: false});
                 }}>

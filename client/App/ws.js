@@ -8,10 +8,10 @@ export default class WS extends EventEmitter {
     this._ws = null;
   }
 
-  send(message) {
+  send(path, message) {
     if (this._ws) {
       var wsMessage = JSON.stringify({
-        path: '/dispatch',
+        path: path,
         destination: 'all',
         body: Base64.encode(unescape(encodeURIComponent(JSON.stringify(message))))
       })
@@ -20,11 +20,20 @@ export default class WS extends EventEmitter {
   }
 
   onReceive(wsMessage) {
-    var message = JSON.parse(decodeURIComponent(escape(Base64.decode(JSON.parse(wsMessage).body))));
-    this.emit('message', message);
+    var jsonResponse = JSON.parse(wsMessage);
+    var message = JSON.parse(decodeURIComponent(escape(Base64.decode(jsonResponse.body))));
+    if (jsonResponse.path === '/dispatch') {
+      this.emit('message', message);
+    } else if (jsonResponse.path === '/typing') {
+      this.emit('typing', message);
+    }
   }
 
   connect(locationUrl) {
+    if (this._ws) {
+      this._ws.close();
+    }
+
     console.log('ws :: connect', locationUrl);
     this._ws = new WebSocket(locationUrl);
 
