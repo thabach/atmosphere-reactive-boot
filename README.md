@@ -18,7 +18,7 @@ public class MessageDispatcherService implements Service<Enveloppe> {
     @Override
     public void on(Enveloppe enveloppe, Reply<Enveloppe> reply) throws IOException {
         Message message = mapper.readValue(enveloppe.body(), Message.class);
-
+        message.setText("Hello Simplicity");
         eventBus.dispatch("/ChatService", message);
         
         reply.ok(enveloppe);
