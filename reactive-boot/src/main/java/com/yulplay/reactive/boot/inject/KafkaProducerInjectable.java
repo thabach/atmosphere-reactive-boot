@@ -17,7 +17,7 @@ package com.yulplay.reactive.boot.inject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yulplay.protocol.Enveloppe;
+import com.yulplay.protocol.Envelope;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.Serializer;
@@ -51,14 +51,14 @@ public class KafkaProducerInjectable implements Injectable<KafkaProducer> {
 
     @Override
     public KafkaProducer injectable(AtmosphereConfig config) {
-        KafkaProducer producer = new KafkaProducer(properties, new ByteArraySerializer(), new Serializer<Enveloppe>() {
+        KafkaProducer producer = new KafkaProducer(properties, new ByteArraySerializer(), new Serializer<Envelope>() {
 
             @Override
             public void configure(Map<String, ?> configs, boolean isKey) {
             }
 
             @Override
-            public byte[] serialize(String topic, Enveloppe data) {
+            public byte[] serialize(String topic, Envelope data) {
                 try {
                     return mapper.writeValueAsBytes(data);
                 } catch (JsonProcessingException e) {

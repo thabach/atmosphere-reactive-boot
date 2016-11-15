@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.UUID;
 
-public class Enveloppe implements Serializable {
+public class Envelope implements Serializable {
 
     private String path;
     private String origin;
@@ -30,7 +30,7 @@ public class Enveloppe implements Serializable {
     private String nodeUuid = "0";
     private String webSocketUUID = "0";
 
-    public Enveloppe() {
+    public Envelope() {
     }
 
     @JsonProperty("path")
@@ -39,7 +39,7 @@ public class Enveloppe implements Serializable {
     }
 
     @JsonProperty("path")
-    public Enveloppe withPath(String path) {
+    public Envelope withPath(String path) {
         this.path = path;
         return this;
     }
@@ -50,7 +50,7 @@ public class Enveloppe implements Serializable {
     }
 
     @JsonProperty("origin")
-    public Enveloppe withOrigin(String origin) {
+    public Envelope withOrigin(String origin) {
         this.origin = origin;
         return this;
     }
@@ -61,7 +61,7 @@ public class Enveloppe implements Serializable {
     }
 
     @JsonProperty("destination")
-    public Enveloppe withDestination(String destination) {
+    public Envelope withDestination(String destination) {
         this.destination = destination;
         return this;
     }
@@ -72,13 +72,13 @@ public class Enveloppe implements Serializable {
     }
 
     @JsonProperty("body")
-    public Enveloppe withBody(byte[] body) {
+    public Envelope withBody(byte[] body) {
         this.body = body;
         return this;
     }
 
     @JsonProperty("webSocketUUID")
-    public Enveloppe webSocketUUID(String webSocketUUID) {
+    public Envelope webSocketUUID(String webSocketUUID) {
         this.webSocketUUID = webSocketUUID;
         return this;
     }
@@ -89,7 +89,7 @@ public class Enveloppe implements Serializable {
     }
 
     @JsonProperty("uuid")
-    public Enveloppe uuid(String uuid) {
+    public Envelope uuid(String uuid) {
         this.uuid = uuid;
         return this;
     }
@@ -100,7 +100,7 @@ public class Enveloppe implements Serializable {
     }
 
     @JsonProperty("nodeUuid")
-    public Enveloppe nodeUuid(String nodeUuid) {
+    public Envelope nodeUuid(String nodeUuid) {
         this.nodeUuid = nodeUuid;
         return this;
     }

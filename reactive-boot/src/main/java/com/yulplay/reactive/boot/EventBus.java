@@ -15,13 +15,13 @@
  */
 package com.yulplay.reactive.boot;
 
-import com.yulplay.protocol.Enveloppe;
+import com.yulplay.protocol.Envelope;
 
 public interface EventBus {
 
     EventBus async(boolean b);
 
-    EventBus dispatch(Enveloppe payload);
+    EventBus dispatch(Envelope payload);
 
     EventBus replyTo(Reply<?> reply);
 

@@ -17,7 +17,7 @@ package com.yulplay.reactive.boot;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yulplay.protocol.Enveloppe;
+import com.yulplay.protocol.Envelope;
 import org.atmosphere.cpr.AtmosphereRequest;
 import org.atmosphere.cpr.AtmosphereResponse;
 import org.atmosphere.websocket.WebSocket;
@@ -67,10 +67,10 @@ public class MessageReceiver {
         };
     }
 
-    public MessageReceiver apply(Enveloppe enveloppe) throws JsonProcessingException {
-        Reply reply = uniqueReply != null ? uniqueReply : idWithReply.remove(enveloppe.uuid());
+    public MessageReceiver apply(Envelope envelope) throws JsonProcessingException {
+        Reply reply = uniqueReply != null ? uniqueReply : idWithReply.remove(envelope.uuid());
         if (reply != null) {
-            reply.ok(mapper.writeValueAsBytes(enveloppe));
+            reply.ok(mapper.writeValueAsBytes(envelope));
         } else {
             /**
              * This issue may arise when a WebSocket#uuid() return the same value as another Tubes
@@ -83,7 +83,7 @@ public class MessageReceiver {
              *
              * TODO: An outside UUID service or server could find this issue.
              */
-            logger.warn("No MessageReceiver for {}. Registered message are {}", enveloppe.uuid(), idWithReply);
+            logger.warn("No MessageReceiver for {}. Registered message are {}", envelope.uuid(), idWithReply);
         }
         return this;
     }
@@ -98,7 +98,7 @@ public class MessageReceiver {
         return this;
     }
 
-    public MessageReceiver receiveWith(Enveloppe t, Reply r) {
+    public MessageReceiver receiveWith(Envelope t, Reply r) {
         idWithReply.put(t.uuid(), r);
         return this;
     }

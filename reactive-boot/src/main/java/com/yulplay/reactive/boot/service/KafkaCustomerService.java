@@ -17,7 +17,7 @@ package com.yulplay.reactive.boot.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yulplay.protocol.Enveloppe;
+import com.yulplay.protocol.Envelope;
 import com.yulplay.reactive.boot.MessageReceiver;
 import com.yulplay.reactive.boot.Reply;
 import com.yulplay.reactive.boot.Service;
@@ -63,7 +63,7 @@ public class KafkaCustomerService implements Service<Void> {
     }
 
     @Override
-    public void on(Enveloppe enveloppe, Reply<Void> reply) {
+    public void on(Envelope envelope, Reply<Void> reply) {
         // NO OPS.
     }
 
@@ -78,8 +78,8 @@ public class KafkaCustomerService implements Service<Void> {
                     logger.trace("{} {}", messageAndMetadata, new String(m, "UTF-8"));
                 }
 
-                Enveloppe enveloppe = mapper.readValue(m, Enveloppe.class);
-                if (enveloppe == null) {
+                Envelope envelope = mapper.readValue(m, Envelope.class);
+                if (envelope == null) {
                     logger.warn("Invalid message (null) for key {}", new String(messageAndMetadata.key()));
                     return;
                 }
@@ -87,24 +87,24 @@ public class KafkaCustomerService implements Service<Void> {
                 // If we are on the same node, this will return the faster than the next call
                 WebSocket webSocket;
                 if (!lookupWebSocket.equalsIgnoreCase(ALL)) {
-                    webSocket = webSocketFactory.findBasedOnSocketAddress(enveloppe.destination());
+                    webSocket = webSocketFactory.findBasedOnSocketAddress(envelope.destination());
                     if (webSocket != null) {
-                        logger.debug("Message {} Received for {}", enveloppe.uuid(), enveloppe.webSocketUUID());
+                        logger.debug("Message {} Received for {}", envelope.uuid(), envelope.webSocketUUID());
                         logger.debug("WebSocket {} found on node {}", webSocket.uuid(), nodeUuid.uuidString());
                         if (webSocket.attachment() != null) {
-                            MessageReceiver.class.cast(webSocket.attachment()).apply(enveloppe.uuid(), m);
+                            MessageReceiver.class.cast(webSocket.attachment()).apply(envelope.uuid(), m);
                         } else {
-                            logger.error("Message will be lost for webSocket {}, no MessageReceiver", enveloppe.webSocketUUID());
+                            logger.error("Message will be lost for webSocket {}, no MessageReceiver", envelope.webSocketUUID());
                         }
                     } else {
-                        logger.trace("Unable to find the webSocket associated with {}", enveloppe.webSocketUUID());
+                        logger.trace("Unable to find the webSocket associated with {}", envelope.webSocketUUID());
                     }
 
                 } else {
                     webSocketFactory.findAll().parallelStream()
                             .forEach(f -> {
                                 try {
-                                    MessageReceiver.class.cast(f.attachment()).apply(enveloppe.uuid(), m);
+                                    MessageReceiver.class.cast(f.attachment()).apply(envelope.uuid(), m);
                                 } catch (JsonProcessingException e) {
                                     logger.warn("", e);
                                 }

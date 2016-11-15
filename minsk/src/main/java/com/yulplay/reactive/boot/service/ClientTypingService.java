@@ -16,7 +16,7 @@
 package com.yulplay.reactive.boot.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yulplay.protocol.Enveloppe;
+import com.yulplay.protocol.Envelope;
 import com.yulplay.reactive.boot.ReactiveWebSocketFactory;
 import com.yulplay.reactive.boot.Reply;
 import com.yulplay.reactive.boot.Service;
@@ -28,7 +28,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 
 @On("/typing")
-public class ClientTypingService implements Service<Enveloppe> {
+public class ClientTypingService implements Service<Envelope> {
     private final Logger logger = LoggerFactory.getLogger(MessageDispatcherService.class);
 
     @Inject
@@ -38,8 +38,8 @@ public class ClientTypingService implements Service<Enveloppe> {
     private ObjectMapper mapper;
 
     @Override
-    public void on(Enveloppe enveloppe, Reply<Enveloppe> reply) throws IOException {
-        byte[] b64Enveloppe = mapper.writeValueAsBytes(enveloppe);
+    public void on(Envelope envelope, Reply<Envelope> reply) throws IOException {
+        byte[] b64Enveloppe = mapper.writeValueAsBytes(envelope);
         webSocketFactory.findAll().parallelStream()
                 .forEach(w -> {
                     try {

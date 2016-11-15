@@ -15,7 +15,7 @@
  */
 package com.yulplay.reactive.boot.service;
 
-import com.yulplay.protocol.Enveloppe;
+import com.yulplay.protocol.Envelope;
 import com.yulplay.reactive.boot.Reply;
 import com.yulplay.reactive.boot.ReplyException;
 import com.yulplay.reactive.boot.Service;
@@ -45,19 +45,19 @@ public class KafkaProducerService implements Service<Void> {
     private String topic;
 
     @Override
-    public void on(Enveloppe enveloppe, Reply<Void> reply) {
-        logger.debug("{} producer.send {}", enveloppe.webSocketUUID(), enveloppe.uuid());
+    public void on(Envelope envelope, Reply<Void> reply) {
+        logger.debug("{} producer.send {}", envelope.webSocketUUID(), envelope.uuid());
 
         // For tracing purpose.
-        enveloppe.nodeUuid(nodeUuid.uuidString());
+        envelope.nodeUuid(nodeUuid.uuidString());
         try {
-            producer.send(new ProducerRecord(topic, null, enveloppe), (metadata, exception) -> {
-                logger.debug("Message {} delivered to Kafka Cluster", enveloppe.uuid());
+            producer.send(new ProducerRecord(topic, null, envelope), (metadata, exception) -> {
+                logger.debug("Message {} delivered to Kafka Cluster", envelope.uuid());
                 // reply.ok()
             });
         } catch (Exception e) {
             logger.error("", e);
-            reply.fail(new ReplyException(e, "Unable to send message to the Kafka Cluster").message(enveloppe));
+            reply.fail(new ReplyException(e, "Unable to send message to the Kafka Cluster").message(envelope));
         }
     }
 

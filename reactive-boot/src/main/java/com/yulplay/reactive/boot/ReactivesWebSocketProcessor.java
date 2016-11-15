@@ -16,7 +16,7 @@
 package com.yulplay.reactive.boot;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yulplay.protocol.Enveloppe;
+import com.yulplay.protocol.Envelope;
 import org.atmosphere.cpr.AtmosphereFramework;
 import org.atmosphere.cpr.AtmosphereRequest;
 import org.atmosphere.cpr.AtmosphereResource;
@@ -115,16 +115,16 @@ public class ReactivesWebSocketProcessor extends WebSocketProcessorAdapter {
         logger.debug("Dispatching webSocket payload");
 
         // (1) Read Message
-        Enveloppe enveloppe = null;
+        Envelope envelope = null;
         try {
-            enveloppe = objectMapper.readValue(data, 0, data.length, Enveloppe.class);
+            envelope = objectMapper.readValue(data, 0, data.length, Envelope.class);
         } catch (IOException e) {
             logger.error("", e);
             webSocket.close();
         }
 
         // (32) Bind the message to the websocket and to this node.
-        enveloppe.webSocketUUID(webSocket.uuid());
+        envelope.webSocketUUID(webSocket.uuid());
 
         // (3) Reply
         Reply<byte[]> reply;
@@ -147,13 +147,13 @@ public class ReactivesWebSocketProcessor extends WebSocketProcessorAdapter {
             };
 
             // (5) Attach message to the Reply for async
-            MessageReceiver.class.cast(webSocket.attachment()).receiveWith(enveloppe, reply);
+            MessageReceiver.class.cast(webSocket.attachment()).receiveWith(envelope, reply);
         } else {
             reply = MessageReceiver.class.cast(webSocket.attachment()).receiveWith();
         }
 
         // (4) Dispatch the message to the proper service. If Kafka is the only Service defined, event bus is not needed.
-        eventBus.async(executeAsync).dispatch(enveloppe).replyTo(reply).to(enveloppe.path());
+        eventBus.async(executeAsync).dispatch(envelope).replyTo(reply).to(envelope.path());
     }
 
     @Override

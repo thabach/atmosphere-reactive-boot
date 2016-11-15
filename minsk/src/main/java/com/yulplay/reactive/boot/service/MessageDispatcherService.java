@@ -16,7 +16,7 @@
 package com.yulplay.reactive.boot.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yulplay.protocol.Enveloppe;
+import com.yulplay.protocol.Envelope;
 import com.yulplay.reactive.boot.ReactiveWebSocketFactory;
 import com.yulplay.reactive.boot.Reply;
 import com.yulplay.reactive.boot.Service;
@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 @On("/dispatch")
-public class MessageDispatcherService implements Service<Enveloppe> {
+public class MessageDispatcherService implements Service<Envelope> {
     private final Logger logger = LoggerFactory.getLogger(MessageDispatcherService.class);
 
     @Inject
@@ -40,14 +40,14 @@ public class MessageDispatcherService implements Service<Enveloppe> {
     private ObjectMapper mapper;
 
     @Override
-    public void on(Enveloppe enveloppe, Reply<Enveloppe> reply) throws IOException {
-        Message message = mapper.readValue(enveloppe.body(), Message.class);
+    public void on(Envelope envelope, Reply<Envelope> reply) throws IOException {
+        Message message = mapper.readValue(envelope.body(), Message.class);
 
         message.setClock(LocalDateTime.now().toString());
 
         byte[] b64Message = mapper.writeValueAsBytes(message);
 
-        byte[] b64Enveloppe = mapper.writeValueAsBytes(enveloppe.withBody(b64Message));
+        byte[] b64Enveloppe = mapper.writeValueAsBytes(envelope.withBody(b64Message));
         webSocketFactory.findAll().parallelStream()
                 .forEach(w -> {
                     try {

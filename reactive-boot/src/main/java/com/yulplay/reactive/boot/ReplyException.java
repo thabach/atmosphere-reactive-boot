@@ -15,7 +15,7 @@
  */
 package com.yulplay.reactive.boot;
 
-import com.yulplay.protocol.Enveloppe;
+import com.yulplay.protocol.Envelope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +26,7 @@ public final class ReplyException implements Serializable{
     private final Logger logger = LoggerFactory.getLogger(ReplyException.class);
     private Throwable throwable;
     private String errorMessage = "";
-    private Enveloppe yulplayEnveloppe;
+    private Envelope yulplayEnvelope;
 
     public ReplyException() {
         this(null, null);
@@ -59,13 +59,13 @@ public final class ReplyException implements Serializable{
         return this;
     }
 
-    public ReplyException message(Enveloppe yulplayEnveloppe) {
-        this.yulplayEnveloppe = yulplayEnveloppe;
+    public ReplyException message(Envelope yulplayEnvelope) {
+        this.yulplayEnvelope = yulplayEnvelope;
         return this;
     }
 
-    public Enveloppe message(){
-        return yulplayEnveloppe;
+    public Envelope message(){
+        return yulplayEnvelope;
     }
 }
 
