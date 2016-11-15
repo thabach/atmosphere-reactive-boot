@@ -15,6 +15,8 @@ export default class WS extends EventEmitter {
         destination: 'all',
         body: Base64.encode(unescape(encodeURIComponent(JSON.stringify(message))))
       })
+
+      // Send to server
       this._ws.send(wsMessage);
     }
   }
@@ -31,27 +33,28 @@ export default class WS extends EventEmitter {
 
   connect(locationUrl) {
     if (this._ws) {
+      // Make sure to close current connection before connecting to new location URL
       this._ws.close();
     }
 
-    console.log('ws :: connect', locationUrl);
     this._ws = new WebSocket(locationUrl);
 
     this._ws.onopen = () => {
-      console.log('ws :: connected');
+      // Websocket is connected!
     };
 
     this._ws.onmessage = event => {
-      console.log('ws :: onmessage', event.data);
+      // Message received, yay!
       this.onReceive(event.data);
     };
 
     this._ws.onerror = event => {
+      // Oops!
       console.log('ws :: error', event.message);
     };
 
     this._ws.onclose = event => {
-      console.log('ws :: onclose', event.code, event.reason);
+      // Yep, WebSocket has been closed
     };
   }
 }

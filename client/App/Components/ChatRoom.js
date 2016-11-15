@@ -6,40 +6,22 @@ import {
   Modal,
   TouchableOpacity,
   Text,
-  TextInput
+  TextInput,
+  Platform
 } from 'react-native';
 import _ from 'lodash';
 import uuid from 'uuid';
 
 import ModalPicker from 'react-native-modal-picker';
 import {GiftedChat, Bubble, InputToolbar} from 'react-native-gifted-chat';
+
+
 import GoogleTranslator from '../Translators/GoogleTranslator';
 import BingTranslator from '../Translators/BingTranslator';
 
 import WS from '../ws';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
-
-const TRANSLATORS = {
-  none: 'None',
-  google: 'Google',
-  bing: 'Bing'
-}
-
-const LANGUAGES = {
-  'google': {
-    en: 'English',
-    fr: 'French',
-    ru: 'Russian',
-    be: 'Belarusian'
-  },
-  'bing': {
-    en: 'English',
-    fr: 'French',
-    ru: 'Russian',
-    tlh: 'Klingon'
-  }
-};
 
 let index = 0;
 const data = [
@@ -54,6 +36,15 @@ const data = [
 
 const {height, width} = Dimensions.get('window');
 var translationIds = 9999;
+
+// Android tweak
+class AndroidGiftedChat extends GiftedChat {
+  onKeyboardWillShow(e) {}
+}
+var MyGiftedChat = GiftedChat;
+if (Platform.OS === 'android') {
+  MyGiftedChat = AndroidGiftedChat;
+}
 
 class LanguageChooser extends React.Component {
   constructor(props) {
@@ -96,6 +87,7 @@ export default class ChatRoom extends React.Component {
     this._serverLocation = 'ws://10.0.1.2:8080';
     this._language = 'none';
 
+    // Setup and add WebSocket listeners
     this._onMessageCb = this.onReceivedMessage.bind(this);
     this._onTypingCb = this.onReceivedTyping.bind(this);
     this._ws = new WS();
@@ -135,50 +127,39 @@ export default class ChatRoom extends React.Component {
 
   addNewMessages(messages = []) {
     this.setState({
-      messages: GiftedChat.append(this.state.messages, messages)
+      messages: MyGiftedChat.append(this.state.messages, messages)
     });
   }
 
+  _getTranslatedMessage(message, translation) {
+    return {
+      _id: message._id,
+      text: translation ? translation : message.text,
+      createdAt: new Date(message.clock),
+      user: {
+        _id: message.userId,
+        language: message.language,
+        name: message.firstName + ' ' + message.lastName
+      }
+    }
+  }
+
   onReceivedMessage(message) {
+    // Prepare message to be added
+    var addMessage = (message, translation) => {
+      var data = this._getTranslatedMessage(message, translation);
+      this.addNewMessages([data]);
+    }
+
     if (message.userId !== this._userId) {
-      // Save original text before translation
       if (this._translator === null || (this._language === 'none' || message.language === this._language)) {
-        setTimeout(() => {
-          var data = {
-            _id: translationIds++,
-            text: message.text,
-            createdAt: new Date(message.clock),
-            user: {
-              _id: message.userId,
-              language: message.language,
-              name: message.firstName + ' ' + message.lastName
-            }
-          }
-          this.addNewMessages([data]);
-        }, 1);
+        setTimeout(() => addMessage(message), 1);
       } else {
         var _originalText = message.text;
         this._translator.translate(message.text, message.language, this._language).then(
-          translated => {
-            var data = {
-              _id: translationIds++,
-              text: translated ? translated : _originalText,
-              createdAt: new Date(message.clock),
-              user: {
-                _id: message.userId,
-                language: message.language,
-                name: message.firstName + ' ' + message.lastName
-              }
-            }
-
-            this.addNewMessages([data]);
-          },
-          err => {
-            console.log('chatroom :: error', err);
-          }
-        ).catch((err) => {
-            console.log('chatroom :: caught error', err);
-        });
+          translated => addMessage(message, translated),
+          err => console.log('chatroom :: error', err)
+        ).catch((err) => console.log('chatroom :: caught error', err));
       }
     }
   }
@@ -206,7 +187,6 @@ export default class ChatRoom extends React.Component {
       }
     }
 
-    console.log(msg);
     this.setState({
       isTypingText: msg
     });
@@ -274,10 +254,11 @@ export default class ChatRoom extends React.Component {
 
   render() {
     return (
-      <View style={{flex: 1}}>
-        <GiftedChat
+      <View style={{width, height}}>
+        <MyGiftedChat
+          bottomOffset={0}
           messages={this.state.messages}
-          isAnimated={false}
+          isAnimated={true}
           onSend={this._onSendCb}
           renderBubble={this._renderBubbleCb}
           renderActions={() => <LanguageChooser onChange={this._setLanguage.bind(this)} />}
@@ -304,7 +285,7 @@ export default class ChatRoom extends React.Component {
           onRequestClose={() => this.setState({showSettings: false})}
         >
           <View style={{position: 'absolute', top: 0, left: 0, width, height, backgroundColor: '#000', opacity: 0.7}} />
-          <View style={{margin: 20, flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+          <View style={{margin: 20, flex: 1, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center'}}>
             <View style={{padding: 20, flex: 1, backgroundColor: '#FFF'}}>
               <Text style={{fontWeight: 'bold', textAlign: 'center'}}>First Name:</Text>
               <TextInput
